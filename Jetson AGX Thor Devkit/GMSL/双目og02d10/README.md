@@ -40,6 +40,17 @@ Jetson AGX Thor 上的双目深度相机交付包：相机驱动（二进制）�
 
 ## 快速开始
 
+### 0. 环境预检
+
+```bash
+chmod +x start_depth_ros.sh preflight.sh
+./preflight.sh
+```
+
+检查内核、L4T、ROS2 Jazzy、VPI、TensorRT、CUDA、OpenCV、交付包完整性与相机设备。
+安装驱动前 `/dev/video0/1` 不存在只会报 WARN，不影响后续步骤。加 `--strict`
+可把 WARN 也视为失败。
+
 ### 1. 安装相机驱动
 
 ```bash
@@ -70,6 +81,11 @@ sudo fuser -v /dev/video0 /dev/video1
 
 ./start_depth_ros.sh
 ```
+
+脚本会按当前目录生成一份临时配置，把 `rectify.calibration_file` 与
+`model.engine` 改写成包内的实际路径，因此整个 `双目og02d10/` 目录可以放在任意
+位置，不再依赖 `/home/nvidia/depth_sdk`。需要用自己的配置时：
+`DEPTH_SDK_CONFIG=/path/to/your.conf ./start_depth_ros.sh`。
 
 节点启动后发布：
 
@@ -184,7 +200,8 @@ color.publish_rectified = true
 
 | 现象 | 处理 |
 |---|---|
-| `start_depth_ros.sh` 报 `config_file` 找不到 | 用脚本启动（脚本会设置 `DEPTH_SDK_CONFIG` 指向 `sdk/config/depth_sdk_vpi.conf`） |
+| 预检报内核 / L4T / TensorRT 不匹配 | 本包与 JetPack 7.0（L4T R39.2.1）绑定，需使用对应版本或联系供应商 |
+| `start_depth_ros.sh` 报 `config_file` / 标定 / engine 找不到 | 用脚本启动（脚本会把配置里的路径改写为包内实际路径）；确认在完整的 `双目og02d10/` 目录下运行 |
 | 无 `/dev/video0/1` | 先按 `driver/README.md` 安装驱动并重启 |
 | `libdepth_sdk.so: cannot open shared object file` | 用 `start_depth_ros.sh`，或手动 `export LD_LIBRARY_PATH=$PWD/sdk/lib` |
 | TensorRT 报 engine 反序列化失败 | engine 与 GPU/TensorRT 版本绑定，确认是 Thor + TensorRT 10.16 |
