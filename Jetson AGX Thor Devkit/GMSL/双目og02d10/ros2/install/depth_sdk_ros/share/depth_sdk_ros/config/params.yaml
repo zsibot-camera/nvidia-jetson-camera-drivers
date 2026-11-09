@@ -1,0 +1,29 @@
+depth_stream_node:
+  ros__parameters:
+    # ── 相机 / 标定 / 模型的唯一真相 ──────────────────────────────
+    # 这个 key=value 文件同时被 demo 与 ROS 节点使用，改它不需要重新编译。
+    # 格式与字段见 depth_sdk 的 include/depth_sdk/config_file.hpp 与 config/depth_sdk.conf。
+    config_file: "/home/nvidia/depth_sdk/config/depth_sdk_vpi.conf"
+
+    # ── 以下只保留 ROS 特有的东西 ────────────────────────────────
+    #
+    # ⚠️ 这里**不要再写** width / height / fx / baseline_m / cx / cy /
+    #    input_width / input_height / engine_path —— 那些一律由 config_file
+    #    提供。写在这里会把它们覆盖掉，因为 ROS 参数优先级最高
+    #    （显式 ROS 参数 > config_file > 内建默认值）。
+
+    # 必须与图像实际通道数一致：PublishImage 用本参数标注发布编码（取的是配置
+    # 而非帧自身的 format），配错会让下游按错误格式解释数据（rviz 花屏）。
+    color_encoding: rgb8         # rgb8 | bgr8 | mono8
+    depth_encoding: 32FC1        # 32FC1 (raw disparity) | 16UC1 (legacy mm depth)
+    frame_id: camera
+
+    color_topic: ~/color/image_raw
+    depth_topic: ~/depth/image_raw
+    camera_info_topic: ~/color/camera_info
+    depth_camera_info_topic: ~/depth/camera_info
+
+    # 图片源（可选）：两者都非空时回放磁盘图片对；为空时使用 config_file 中的
+    # camera.uri（当前默认是 V4L2 双目源）。camera.uri 为空才使用 SyntheticStereoSource。
+    image_left:  ""
+    image_right: ""
