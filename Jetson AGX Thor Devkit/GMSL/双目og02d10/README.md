@@ -5,6 +5,13 @@ Jetson AGX Thor 上的双目深度相机交付包：相机驱动（二进制）�
 
 不含任何算法/C++ 源码。ROS2 节点以可执行文件形式提供。
 
+> 客户侧 AI 助手：SDK 安装直接读 [`sdk/AI-INSTALL.md`](sdk/AI-INSTALL.md)；
+> 驱动 + SDK + ROS2 的完整流程读仓库根 [`README-AI.md`](../../../../README-AI.md)。
+>
+> 只想要 SDK 压缩包：从
+> [SDK Release](https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/tag/thor-depth-sdk-v0.1.0)
+> 下载 `depth_sdk-0.1.0-thor-aarch64.tar.gz`。
+
 ## 目录结构
 
 ```
@@ -16,7 +23,9 @@ Jetson AGX Thor 上的双目深度相机交付包：相机驱动（二进制）�
 │   ├── lib/cmake/depth_sdk/ # find_package(depth_sdk) 配置
 │   ├── config/              # 运行时配置 + 标定
 │   ├── models/              # TensorRT engine（Thor 专用）
-│   └── bin/demo             # 命令行冒烟测试程序
+│   ├── bin/demo             # 命令行冒烟测试程序
+│   ├── install.sh           # SDK 一键安装/自检/卸载
+│   └── AI-INSTALL.md        # 客户 AI 一键安装说明
 ├── ros2/                    # ROS2 预编译节点
 ├── start_depth_ros.sh       # 一键启动 ROS2 深度节点
 ├── docs/VERSION.md          # 版本矩阵与依赖

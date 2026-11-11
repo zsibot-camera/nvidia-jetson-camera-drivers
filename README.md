@@ -1,18 +1,39 @@
 # NVIDIA Jetson 相机驱动
 
-智身科技（GENISOM AI）视觉传感器团队面向 NVIDIA Jetson 平台的相机驱动与 SDK 发布仓库。
+智身科技（GENISOM AI）视觉传感器团队面向 NVIDIA Jetson 平台的相机驱动、SDK 与
+上位机工具发布仓库。
+
+> 客户侧 AI 助手：直接阅读 [README-AI.md](README-AI.md)，按里面的命令校验并一键安装。
+> 人类用户按下面的“交付包下载 / 快速开始”操作即可。
+
+## 交付包下载
+
+| 交付物 | 下载 | 适用 |
+| --- | --- | --- |
+| Thor 深度 SDK 0.1.0 | [depth_sdk-0.1.0-thor-aarch64.tar.gz](https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/download/thor-depth-sdk-v0.1.0/depth_sdk-0.1.0-thor-aarch64.tar.gz) | Thor 板端 C++ 集成 |
+| ZSViewer 2.1.0 | [ZSViewer Releases](https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/tag/zsviewer-v2.1.0) | Linux / Windows 上位机 |
+| 驱动 + SDK + ROS2 | [双目 OG02D10 交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) | Thor 板端完整链路 |
+
+每个 Release 附带 `SHA256SUMS`，下载后先校验：
+
+```bash
+sha256sum -c SHA256SUMS --ignore-missing
+```
 
 ## 内容
 
 | 平台 | 接口 | 相机模组 | 说明 |
 | --- | --- | --- | --- |
 | Jetson AGX Thor Devkit | GMSL | 双目 OG02D10 | [深度相机交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) |
+| 上位机 Linux / Windows | — | 通用 | ZSViewer RGB-D 查看 / 点云 / 抓图 / 录像 |
+| Thor 板端 | — | 通用 | depth_sdk 0.1.0（头文件 + 动态库 + engine） |
 
 其他平台与模组目录（Jetson AGX Orin Devkit、RLINK、单目 ISX031 / OG02B10）暂未发布。
 
 ## 交付形式
 
-以二进制交付为主：内核驱动（`.ko` / `.dtbo`）、安装脚本、预编译 SDK（头文件 + 动态库 + TensorRT engine）与 ROS2 节点，不包含算法与 C++ 源码。
+以二进制交付为主：内核驱动（`.ko` / `.dtbo`）、安装脚本、预编译 SDK（头文件 + 动态库 +
+TensorRT engine）、ROS2 节点与 ZSViewer 安装包，不包含算法与 C++ 源码。
 
 ---
 
