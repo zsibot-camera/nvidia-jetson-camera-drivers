@@ -21,14 +21,14 @@
 |---|---|---|
 | 在 Thor 上跑深度 SDK / 写 C++ | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` |
 | 在 Thor 上跑 ROS2 深度节点 | Thor 板端 | 直接 clone 本仓库，按 `双目og02d10/README.md` 装 driver + ROS |
-| 在 Linux 上位机看图像/点云/录像 | Ubuntu 22.04+ x86_64 | `ZSViewer-2.1.0-amd64.deb` 或 AppImage |
-| 在 Windows 上位机看图像/点云/录像 | Windows 10/11 x64 | `ZSViewer-2.1.0-windows-x64-setup.exe` |
+| 在 Linux 上位机看图像/点云/录像 | Ubuntu 22.04+ x86_64 | `ZSViewer-2.1.0-amd64.deb` 或 AppImage（独立仓库） |
+| 在 Windows 上位机看图像/点云/录像 | Windows 10/11 x64 | `ZSViewer-2.1.0-windows-x64-setup.exe`（独立仓库） |
 | 只想快速验证相机出流 | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` 里的 `demo` |
 
 下载页：
 
 - SDK：<https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/tag/thor-depth-sdk-v0.1.0>
-- ZSViewer：<https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/tag/zsviewer-v2.1.0>
+- ZSViewer（独立交付仓库）：<https://github.com/zsibot-camera/ZSViewer-delivery/releases/tag/v2.1.0>
 
 ## 2. 确认目标机
 
@@ -62,7 +62,16 @@ sha256sum -c SHA256SUMS
 
 预期：`depth_sdk-0.1.0-thor-aarch64.tar.gz: OK`。
 
-ZSViewer 同理，换成 `zsviewer-v2.1.0` 和对应文件名。
+ZSViewer 使用独立交付仓库：
+
+```bash
+BASE=https://github.com/zsibot-camera/ZSViewer-delivery/releases/download/v2.1.0
+curl -fLO "$BASE/ZSViewer-2.1.0-amd64.deb"
+curl -fLO "$BASE/SHA256SUMS"
+sha256sum -c SHA256SUMS --ignore-missing
+```
+
+也可以直接运行该仓库的 `install.sh` 自动检测系统、下载、校验并安装依赖。
 
 ## 4. 安装
 
@@ -230,3 +239,5 @@ ros2 topic hz /depth_stream_node/depth/image_raw
 - `delivery-manifest.json`：包名、平台、下载地址、SHA256、安装入口。
 - `Jetson AGX Thor Devkit/GMSL/双目og02d10/sdk/AI-INSTALL.md`：SDK 详细安装。
 - `Jetson AGX Thor Devkit/GMSL/双目og02d10/README.md`：驱动 + SDK + ROS2 完整流程。
+- ZSViewer 的机器可读说明与 `install.sh` 在独立仓库
+  [ZSViewer-delivery](https://github.com/zsibot-camera/ZSViewer-delivery)。
