@@ -11,7 +11,7 @@
 | 交付物 | 下载 | 适用 |
 | --- | --- | --- |
 | Thor 深度 SDK 0.1.0 | [depth_sdk-0.1.0-thor-aarch64.tar.gz](https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/download/thor-depth-sdk-v0.1.0/depth_sdk-0.1.0-thor-aarch64.tar.gz) | Thor 板端 C++ 集成 |
-| ZSViewer 2.1.0 | [ZSViewer Releases](https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/tag/zsviewer-v2.1.0) | Linux / Windows 上位机 |
+| ZSViewer 2.1.0 | [ZSViewer 独立交付仓库](https://github.com/zsibot-camera/ZSViewer-delivery/releases/tag/v2.1.0) | Linux / Windows 上位机 |
 | 驱动 + SDK + ROS2 | [双目 OG02D10 交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) | Thor 板端完整链路 |
 
 每个 Release 附带 `SHA256SUMS`，下载后先校验：
@@ -25,7 +25,7 @@ sha256sum -c SHA256SUMS --ignore-missing
 | 平台 | 接口 | 相机模组 | 说明 |
 | --- | --- | --- | --- |
 | Jetson AGX Thor Devkit | GMSL | 双目 OG02D10 | [深度相机交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) |
-| 上位机 Linux / Windows | — | 通用 | ZSViewer RGB-D 查看 / 点云 / 抓图 / 录像 |
+| 上位机 Linux / Windows | — | 通用 | [ZSViewer](https://github.com/zsibot-camera/ZSViewer-delivery) RGB-D 查看 / 点云 / 抓图 / 录像（独立仓库） |
 | Thor 板端 | — | 通用 | depth_sdk 0.1.0（头文件 + 动态库 + engine） |
 
 其他平台与模组目录（Jetson AGX Orin Devkit、RLINK、单目 ISX031 / OG02B10）暂未发布。
@@ -33,7 +33,8 @@ sha256sum -c SHA256SUMS --ignore-missing
 ## 交付形式
 
 以二进制交付为主：内核驱动（`.ko` / `.dtbo`）、安装脚本、预编译 SDK（头文件 + 动态库 +
-TensorRT engine）、ROS2 节点与 ZSViewer 安装包，不包含算法与 C++ 源码。
+TensorRT engine）、ROS2 节点，不包含算法与 C++ 源码。上位机 ZSViewer 在独立的
+[ZSViewer-delivery](https://github.com/zsibot-camera/ZSViewer-delivery) 仓库交付。
 
 ---
 
@@ -215,5 +216,6 @@ export LD_LIBRARY_PATH=/path/to/双目og02d10/sdk/lib:$LD_LIBRARY_PATH
 
 ## 相关仓库
 
+- [ZSViewer-delivery](https://github.com/zsibot-camera/ZSViewer-delivery) — 上位机 ZSViewer 独立交付仓库（Linux / Windows）
 - [d-robotics-camera-drivers](https://github.com/zsibot-camera/d-robotics-camera-drivers) — D-Robotics RDK S600 / S100P 平台
 - [.github](https://github.com/zsibot-camera/.github) — 组织展示页
