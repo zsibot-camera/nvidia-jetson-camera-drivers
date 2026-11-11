@@ -20,59 +20,13 @@
           "install": "tar -xzf depth_sdk-0.1.0-thor-aarch64.tar.gz && cd depth_sdk-0.1.0 && ./install.sh --check && sudo ./install.sh"
         }
       ]
-    },
+    }
+  ],
+  "related_repositories": [
     {
-      "name": "ZSViewer RGB-D 查看/录制/点云工具",
-      "tag": "zsviewer-v2.1.0",
-      "url": "https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/tag/zsviewer-v2.1.0",
-      "checksums": "https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/download/zsviewer-v2.1.0/SHA256SUMS",
-      "packages": [
-        {
-          "file": "ZSViewer-2.1.0-amd64.deb",
-          "platform": "linux",
-          "arch": "x86_64",
-          "target": "host",
-          "kind": "tool",
-          "install_doc": "AI-INSTALL.md",
-          "install": "sudo apt install ./ZSViewer-2.1.0-amd64.deb"
-        },
-        {
-          "file": "ZSViewer-2.1.0-linux-x86_64.AppImage",
-          "platform": "linux",
-          "arch": "x86_64",
-          "target": "host",
-          "kind": "tool",
-          "install_doc": "AI-INSTALL.md",
-          "install": "chmod +x ZSViewer-2.1.0-linux-x86_64.AppImage && ./ZSViewer-2.1.0-linux-x86_64.AppImage"
-        },
-        {
-          "file": "ZSViewer-2.1.0-linux-x86_64.tar.gz",
-          "platform": "linux",
-          "arch": "x86_64",
-          "target": "host",
-          "kind": "tool",
-          "install_doc": "AI-INSTALL.md",
-          "install": "tar -xzf ZSViewer-2.1.0-linux-x86_64.tar.gz && ./ZSViewer/ZSViewer"
-        },
-        {
-          "file": "ZSViewer-2.1.0-windows-x64-setup.exe",
-          "platform": "windows",
-          "arch": "x86_64",
-          "target": "host",
-          "kind": "tool",
-          "install_doc": "AI-INSTALL.md",
-          "install": "run ZSViewer-2.1.0-windows-x64-setup.exe"
-        },
-        {
-          "file": "ZSViewer-2.1.0-windows-x64-portable.zip",
-          "platform": "windows",
-          "arch": "x86_64",
-          "target": "host",
-          "kind": "tool",
-          "install_doc": "AI-INSTALL.md",
-          "install": "extract and run ZSViewer/ZSViewer.exe"
-        }
-      ]
+      "name": "ZSViewer-delivery",
+      "url": "https://github.com/zsibot-camera/ZSViewer-delivery",
+      "description": "上位机 ZSViewer 独立交付仓库：Linux / Windows 安装包、AI-INSTALL.md 与 install.sh"
     }
   ]
 }
