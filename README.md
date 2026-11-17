@@ -11,7 +11,7 @@
 | 交付物 | 下载 | 适用 |
 | --- | --- | --- |
 | Thor 深度 SDK 0.1.0 | [depth_sdk-0.1.0-thor-aarch64.tar.gz](https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/download/thor-depth-sdk-v0.1.0/depth_sdk-0.1.0-thor-aarch64.tar.gz) | Thor 板端 C++ 集成 |
-| ZSViewer 2.1.0 | [ZSViewer 独立交付仓库](https://github.com/zsibot-camera/ZSViewer-delivery/releases/tag/v2.1.0) | Linux / Windows 上位机 |
+| ZSViewer 2.1.1 | [ZSViewer 独立交付仓库](https://github.com/zsibot-camera/ZSViewer-delivery/releases/tag/v2.1.1) | Linux / Windows 上位机 |
 | 驱动 + SDK + ROS2 | [双目 OG02D10 交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) | Thor 板端完整链路 |
 
 每个 Release 附带 `SHA256SUMS`，下载后先校验：

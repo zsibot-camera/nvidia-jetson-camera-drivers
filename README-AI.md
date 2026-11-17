@@ -21,14 +21,14 @@
 |---|---|---|
 | 在 Thor 上跑深度 SDK / 写 C++ | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` |
 | 在 Thor 上跑 ROS2 深度节点 | Thor 板端 | 直接 clone 本仓库，按 `双目og02d10/README.md` 装 driver + ROS |
-| 在 Linux 上位机看图像/点云/录像 | Ubuntu 22.04+ x86_64 | `ZSViewer-2.1.0-amd64.deb` 或 AppImage（独立仓库） |
-| 在 Windows 上位机看图像/点云/录像 | Windows 10/11 x64 | `ZSViewer-2.1.0-windows-x64-setup.exe`（独立仓库） |
+| 在 Linux 上位机看图像/点云/录像 | Ubuntu 22.04+ x86_64 | `ZSViewer-2.1.1-amd64.deb` 或 AppImage（独立仓库） |
+| 在 Windows 上位机看图像/点云/录像 | Windows 10/11 x64 | `ZSViewer-2.1.1-windows-x64-setup.exe`（独立仓库） |
 | 只想快速验证相机出流 | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` 里的 `demo` |
 
 下载页：
 
 - SDK：<https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/tag/thor-depth-sdk-v0.1.0>
-- ZSViewer（独立交付仓库）：<https://github.com/zsibot-camera/ZSViewer-delivery/releases/tag/v2.1.0>
+- ZSViewer（独立交付仓库）：<https://github.com/zsibot-camera/ZSViewer-delivery/releases/tag/v2.1.1>
 
 ## 2. 确认目标机
 
@@ -65,8 +65,8 @@ sha256sum -c SHA256SUMS
 ZSViewer 使用独立交付仓库：
 
 ```bash
-BASE=https://github.com/zsibot-camera/ZSViewer-delivery/releases/download/v2.1.0
-curl -fLO "$BASE/ZSViewer-2.1.0-amd64.deb"
+BASE=https://github.com/zsibot-camera/ZSViewer-delivery/releases/download/v2.1.1
+curl -fLO "$BASE/ZSViewer-2.1.1-amd64.deb"
 curl -fLO "$BASE/SHA256SUMS"
 sha256sum -c SHA256SUMS --ignore-missing
 ```
@@ -97,38 +97,38 @@ source /etc/profile.d/depth-sdk.sh
 Debian/Ubuntu（推荐，自动装依赖）：
 
 ```bash
-sudo apt install ./ZSViewer-2.1.0-amd64.deb
+sudo apt install ./ZSViewer-2.1.1-amd64.deb
 zsviewer-cli --version
 ```
 
-预期：`ZSViewer 2.1.0`。
+预期：`ZSViewer 2.1.1`。
 
 AppImage（免安装）：
 
 ```bash
-chmod +x ZSViewer-2.1.0-linux-x86_64.AppImage
-./ZSViewer-2.1.0-linux-x86_64.AppImage --version
+chmod +x ZSViewer-2.1.1-linux-x86_64.AppImage
+./ZSViewer-2.1.1-linux-x86_64.AppImage --version
 ```
 
 如果提示 FUSE 不可用：
 
 ```bash
-./ZSViewer-2.1.0-linux-x86_64.AppImage --appimage-extract-and-run
+./ZSViewer-2.1.1-linux-x86_64.AppImage --appimage-extract-and-run
 ```
 
 tar.gz（绿色部署）：
 
 ```bash
-tar -xzf ZSViewer-2.1.0-linux-x86_64.tar.gz
+tar -xzf ZSViewer-2.1.1-linux-x86_64.tar.gz
 ./ZSViewer/ZSViewer --install-desktop   # 可选：装到 ~/.local/bin + 桌面菜单
 ./ZSViewer/ZSViewer
 ```
 
 ### 4.3 Windows 上位机 ZSViewer
 
-安装版：双击 `ZSViewer-2.1.0-windows-x64-setup.exe`，按向导完成（普通用户权限即可）。
+安装版：双击 `ZSViewer-2.1.1-windows-x64-setup.exe`，按向导完成（普通用户权限即可）。
 
-便携版：解压 `ZSViewer-2.1.0-windows-x64-portable.zip`，运行 `ZSViewer\ZSViewer.exe`。
+便携版：解压 `ZSViewer-2.1.1-windows-x64-portable.zip`，运行 `ZSViewer\ZSViewer.exe`。
 数据写在 exe 旁 `data\`，不写系统目录。
 
 命令行验证：
@@ -137,7 +137,7 @@ tar -xzf ZSViewer-2.1.0-linux-x86_64.tar.gz
 .\ZSViewer\zsviewer-cli.exe --version
 ```
 
-预期：`ZSViewer 2.1.0`。
+预期：`ZSViewer 2.1.1`。
 
 ### 4.4 Thor 驱动 + ROS2（可选）
 
@@ -228,7 +228,7 @@ ros2 topic hz /depth_stream_node/depth/image_raw
 |---|---|
 | Thor 交付包 | JetPack 7.0 / L4T R39.2.1 / TensorRT 10.16 / VPI 4.1.4 |
 | depth_sdk | 0.1.0 |
-| ZSViewer | 2.1.0 |
+| ZSViewer | 2.1.1 |
 | UVDP | v2（TCP 9600） |
 
 升级 JetPack 后，`.ko`、TensorRT engine、SDK 二进制都要重新出对应版本；
