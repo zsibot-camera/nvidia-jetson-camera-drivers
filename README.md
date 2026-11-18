@@ -13,8 +13,10 @@
 | Thor 深度 SDK 0.1.0 | [depth_sdk-0.1.0-thor-aarch64.tar.gz](https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/download/thor-depth-sdk-v0.1.0/depth_sdk-0.1.0-thor-aarch64.tar.gz) | Thor 板端 C++ 集成 |
 | ZSViewer 2.1.1 | [ZSViewer 独立交付仓库](https://github.com/zsibot-camera/ZSViewer-delivery/releases/tag/v2.1.1) | Linux / Windows 上位机 |
 | 驱动 + SDK + ROS2 | [双目 OG02D10 交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) | Thor 板端完整链路 |
+| 四目 ISX031 驱动 | [四目 ISX031 驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/四目isx031/) | Thor 板端四路彩色出流 |
 
-每个 Release 附带 `SHA256SUMS`，下载后先校验：
+每个 Release 附带 `SHA256SUMS`；仓库内驱动目录附带 `checksums.txt`，用法相同。
+下载后先校验：
 
 ```bash
 sha256sum -c SHA256SUMS --ignore-missing
@@ -25,15 +27,17 @@ sha256sum -c SHA256SUMS --ignore-missing
 | 平台 | 接口 | 相机模组 | 说明 |
 | --- | --- | --- | --- |
 | Jetson AGX Thor Devkit | GMSL | 双目 OG02D10 | [深度相机交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) |
+| Jetson AGX Thor Devkit | GMSL | 四目 ISX031 | [四路彩色驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/四目isx031/) |
 | 上位机 Linux / Windows | — | 通用 | [ZSViewer](https://github.com/zsibot-camera/ZSViewer-delivery) RGB-D 查看 / 点云 / 抓图 / 录像（独立仓库） |
 | Thor 板端 | — | 通用 | depth_sdk 0.1.0（头文件 + 动态库 + engine） |
 
-其他平台与模组目录（Jetson AGX Orin Devkit、RLINK、单目 ISX031 / OG02B10）暂未发布。
+其他平台与模组目录（Jetson AGX Orin Devkit、RLINK、OG02B10）暂未发布。
 
 ## 交付形式
 
 以二进制交付为主：内核驱动（`.ko` / `.dtbo`）、安装脚本、预编译 SDK（头文件 + 动态库 +
-TensorRT engine）、ROS2 节点，不包含算法与 C++ 源码。上位机 ZSViewer 在独立的
+TensorRT engine）、ROS2 节点，不包含算法与 C++ 源码。相机驱动按模组/拓扑独立交付；
+四目 ISX031 为纯驱动包，不含 SDK、ROS2、深度或标定。上位机 ZSViewer 在独立的
 [ZSViewer-delivery](https://github.com/zsibot-camera/ZSViewer-delivery) 仓库交付。
 
 ---
@@ -200,6 +204,75 @@ export LD_LIBRARY_PATH=/path/to/双目og02d10/sdk/lib:$LD_LIBRARY_PATH
 
 ---
 
+## 快速开始：Thor GMSL 四目 ISX031（彩色）
+
+四路 1920×1536 YUYV422，30 fps，同时出流；同步由 MAX96712 内部 FSYNC 产生，
+不需要外部触发引脚。本包只提供驱动，不含 SDK、ROS2、深度或标定。
+
+### 0. 系统要求
+
+| 项 | 版本 |
+|---|---|
+| 平台 | Jetson AGX Thor Devkit（P4071 + P3834-0008） |
+| JetPack | 7.0（L4T R39.2.1） |
+| 内核 | 6.8.12-1021-tegra |
+| 拓扑 | 1× MAX96712 + 4× MAX96717 + 4× ISX031 |
+
+### 1. 获取与预检
+
+```bash
+git clone https://github.com/zsibot-camera/nvidia-jetson-camera-drivers.git
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/四目isx031"
+./preflight.sh
+./driver/install.sh --check
+```
+
+### 2. 安装
+
+```bash
+sudo ./driver/install.sh
+sudo reboot
+```
+
+安装脚本会备份原文件，并且只把主启动项 `OVERLAYS` 里的 OG02D10/OG02B10
+相机 overlay 替换成 ISX031。**不要同时启用多种相机 overlay**，它们共用
+MAX96712（0x6b / I2C12）。
+
+### 3. 加载与验证
+
+```bash
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/四目isx031"
+sudo ./driver/load_modules.sh
+for d in /dev/video0 /dev/video1 /dev/video2 /dev/video3; do
+    v4l2-ctl -d "$d" --get-fmt-video
+done
+```
+
+四路都应为 1920×1536、YUYV，每帧 5,898,240 字节。四路并发采集示例见
+[四目 ISX031 README](Jetson%20AGX%20Thor%20Devkit/GMSL/四目isx031/README.md)。
+
+### 4. 节点映射与同步
+
+实测：video0→vc3→D，video1→vc2→C，video2→vc1→B，video3→vc0→A。
+`/dev/videoN` 编号由 Linux 分配，换载板后以 `media-ctl -p` 或 dmesg 的
+`vc=N` 为准。
+
+同步为解串器内部 FSYNC 30 Hz（GPIO ID 8）→ GMSL2 backchannel →
+MAX96717 MFP8 → ISX031；串行器引脚不改。验证数据：四路各 240 帧
+29.99–30.00 fps；四路并发 90 帧/路；两两时间戳差中位 4–11 µs、
+最大 42 µs；80/80 压力测试通过。
+
+### 5. 回滚
+
+```bash
+sudo ./driver/uninstall.sh
+sudo reboot
+```
+
+详见 [driver/README.md](Jetson%20AGX%20Thor%20Devkit/GMSL/四目isx031/driver/README.md)。
+
+---
+
 ## 常见问题
 
 | 现象 | 处理 |
@@ -213,6 +286,9 @@ export LD_LIBRARY_PATH=/path/to/双目og02d10/sdk/lib:$LD_LIBRARY_PATH
 | 深度全 0 / 异常 | 确认 `stereo_calibration.json` 是本模组的；用 `sdk/bin/demo` 检查视差 |
 | `ros2 topic hz` 低于 30/10 | Best Effort + depth=1 会丢帧，用 `--window 30` 多测几秒 |
 | 相机打不开 | `/dev/video0/1` 被其它进程占用，先停 `uvdp_streamer`、`ZSViewer`、`demo` |
+| 四目 ISX031 没有 `/dev/video0..3` | 确认主启动项只有 ISX031 overlay；重启后执行 `driver/load_modules.sh` |
+| 四目 ISX031 只有部分节点 | 检查四条 GMSL 链路、模组供电和线束；不要重载 serdes 驱动 |
+| OG02D10 与 ISX031 能否同时出流 | 不能；两者共用 MAX96712 `0x6b` / I2C12，需按启动项二选一 |
 
 ## 相关仓库
 

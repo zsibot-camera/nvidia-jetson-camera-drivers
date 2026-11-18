@@ -7,10 +7,11 @@
 > - 不要重载 / 卸载 `nv_max9295d`、`nv_max96712`，不要 sysfs unbind/rebind；
 > - 不要 `pkill -f depth_stream_node`（会误杀 bridge）；用准确 PID 或 systemd 服务名；
 > - 不要跨平台混用 Orin / Thor 的包、TensorRT engine、标定；
+> - 不要同时启用 OG02D10/OG02B10/ISX031 相机 overlay，一个启动周期只能一种相机拓扑；
 > - 不要在日志/命令里写入密码、token；
 > - 需要 `sudo reboot` 时先告诉用户，让用户确认。
 
-本仓库面向 **Jetson AGX Thor Devkit + GMSL 双目 OG02D10**。
+本仓库面向 **Jetson AGX Thor Devkit + GMSL 双目 OG02D10 / 四目 ISX031**。
 其他平台（Orin、RV1126B）请使用对应仓库/交付包。
 
 ---
@@ -21,6 +22,7 @@
 |---|---|---|
 | 在 Thor 上跑深度 SDK / 写 C++ | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` |
 | 在 Thor 上跑 ROS2 深度节点 | Thor 板端 | 直接 clone 本仓库，按 `双目og02d10/README.md` 装 driver + ROS |
+| 在 Thor 上看四路 ISX031 彩色出流 | Thor 板端 | 直接 clone 本仓库，按 `四目isx031/README.md` 装 driver |
 | 在 Linux 上位机看图像/点云/录像 | Ubuntu 22.04+ x86_64 | `ZSViewer-2.1.1-amd64.deb` 或 AppImage（独立仓库） |
 | 在 Windows 上位机看图像/点云/录像 | Windows 10/11 x64 | `ZSViewer-2.1.1-windows-x64-setup.exe`（独立仓库） |
 | 只想快速验证相机出流 | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` 里的 `demo` |
@@ -164,6 +166,33 @@ ls -l /dev/video0 /dev/video1
 `~/color/image_rect`（1920×1280，板端 VIC 校正）与 `~/depth/image_raw`
 （768×512，32FC1 视差，约 10 fps）。
 
+### 4.5 Thor 四目 ISX031 驱动（彩色，可选）
+
+只做四路彩色出流，不需要深度 SDK、ROS2 或 TensorRT。**不要与 OG02D10/OG02B10
+overlay 同时启用**，它们共用 MAX96712（0x6b / I2C12）。
+
+```bash
+git clone https://github.com/zsibot-camera/nvidia-jetson-camera-drivers.git
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/四目isx031"
+./preflight.sh
+./driver/install.sh --check
+sudo ./driver/install.sh
+```
+
+安装脚本会提示需要重启；**由用户确认后执行 `sudo reboot`**。重启后：
+
+```bash
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/四目isx031"
+sudo ./driver/load_modules.sh
+for d in /dev/video0 /dev/video1 /dev/video2 /dev/video3; do
+    v4l2-ctl -d "$d" --get-fmt-video
+done
+```
+
+预期：4 个名称含 `isx031` 的视频节点，均为 1920×1536、YUYV。四路并发采集
+各 30 帧时，每个文件 176,947,200 字节。同步由 MAX96712 内部 FSYNC 30 Hz
+产生，两两时间戳差应远小于 1 ms。
+
 ## 5. 连接与验证
 
 ### 5.1 ZSViewer 连接 Thor
@@ -206,6 +235,20 @@ ros2 topic hz /depth_stream_node/depth/image_raw
 
 预期：彩色约 30 Hz，深度约 10 Hz。
 
+### 5.4 四目 ISX031 四路出流
+
+```bash
+for i in 0 1 2 3; do
+    v4l2-ctl -d "/dev/video$i" \
+        --set-fmt-video=width=1920,height=1536,pixelformat=YUYV \
+        --stream-mmap --stream-count=30 --stream-to="/tmp/cam$i.yuv" &
+done
+wait
+ls -l /tmp/cam*.yuv
+```
+
+预期：四个文件均为 176,947,200 字节，四路图像内容不同。
+
 ## 6. 排障
 
 | 现象 | 先检查 | 处理 |
@@ -216,6 +259,9 @@ ros2 topic hz /depth_stream_node/depth/image_raw
 | `demo` 报 `error while loading shared libraries` | `ldd /opt/depth_sdk/bin/demo` | `source /etc/profile.d/depth-sdk.sh`；`sudo ldconfig` |
 | 打不开 `/dev/video0/1` | `fuser -v /dev/video0 /dev/video1` | 相机被占用：用准确 PID 停掉占用进程，或停 systemd 服务 |
 | 单路相机停帧 | 服务日志 | 重启采集服务/整机；**不要**重载 serdes 驱动 |
+| 四目 ISX031 无 `/dev/video0..3` | 主启动项 overlay | 只保留 ISX031 overlay；重启后执行 `driver/load_modules.sh` |
+| 四目 ISX031 只有部分节点 | GMSL 链路/模组供电 | 检查线束和 link lock；**不要**重载 serdes 驱动 |
+| OG02D10 与 ISX031 同时启用 | extlinux `OVERLAYS` | 两者共用 MAX96712 `0x6b` / I2C12，必须二选一 |
 | TensorRT engine 反序列化失败 | engine 来源 | 必须用 Thor + TensorRT 10.16 的 engine；Orin engine 不可用 |
 | 深度全 0 / 尺度不对 | 标定文件来源 | 换成本模组随货 `stereo_calibration.json`；确认 `baseline_m`≈0.05955 |
 | ZSViewer 黑屏/图像不动 | 板端是否出流 | 先看板端帧计数/ROS 话题；不要为此改板端 VPI 后端 |
@@ -228,6 +274,7 @@ ros2 topic hz /depth_stream_node/depth/image_raw
 |---|---|
 | Thor 交付包 | JetPack 7.0 / L4T R39.2.1 / TensorRT 10.16 / VPI 4.1.4 |
 | depth_sdk | 0.1.0 |
+| 四目 ISX031 驱动 | 首版 2026-11-18（内核 `6.8.12-1021-tegra`） |
 | ZSViewer | 2.1.1 |
 | UVDP | v2（TCP 9600） |
 
@@ -239,5 +286,7 @@ ros2 topic hz /depth_stream_node/depth/image_raw
 - `delivery-manifest.json`：包名、平台、下载地址、SHA256、安装入口。
 - `Jetson AGX Thor Devkit/GMSL/双目og02d10/sdk/AI-INSTALL.md`：SDK 详细安装。
 - `Jetson AGX Thor Devkit/GMSL/双目og02d10/README.md`：驱动 + SDK + ROS2 完整流程。
+- `Jetson AGX Thor Devkit/GMSL/四目isx031/README.md`：四目 ISX031 驱动安装与出流。
+- `Jetson AGX Thor Devkit/GMSL/四目isx031/docs/VERIFICATION.md`：四目上板验证记录。
 - ZSViewer 的机器可读说明与 `install.sh` 在独立仓库
   [ZSViewer-delivery](https://github.com/zsibot-camera/ZSViewer-delivery)。
