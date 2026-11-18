@@ -13,7 +13,7 @@
 | Thor 深度 SDK 0.1.0 | [depth_sdk-0.1.0-thor-aarch64.tar.gz](https://github.com/zsibot-camera/nvidia-jetson-camera-drivers/releases/download/thor-depth-sdk-v0.1.0/depth_sdk-0.1.0-thor-aarch64.tar.gz) | Thor 板端 C++ 集成 |
 | ZSViewer 2.1.1 | [ZSViewer 独立交付仓库](https://github.com/zsibot-camera/ZSViewer-delivery/releases/tag/v2.1.1) | Linux / Windows 上位机 |
 | 驱动 + SDK + ROS2 | [双目 OG02D10 交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) | Thor 板端完整链路 |
-| 四目 ISX031 驱动 | [四目 ISX031 驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/四目isx031/) | Thor 板端四路彩色出流 |
+| 四目 ISX031 驱动 | [四目 ISX031 驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/单目isx031/) | Thor 板端四路彩色出流 |
 
 每个 Release 附带 `SHA256SUMS`；仓库内驱动目录附带 `checksums.txt`，用法相同。
 下载后先校验：
@@ -27,7 +27,7 @@ sha256sum -c SHA256SUMS --ignore-missing
 | 平台 | 接口 | 相机模组 | 说明 |
 | --- | --- | --- | --- |
 | Jetson AGX Thor Devkit | GMSL | 双目 OG02D10 | [深度相机交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) |
-| Jetson AGX Thor Devkit | GMSL | 四目 ISX031 | [四路彩色驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/四目isx031/) |
+| Jetson AGX Thor Devkit | GMSL | 四目 ISX031 | [四路彩色驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/单目isx031/) |
 | 上位机 Linux / Windows | — | 通用 | [ZSViewer](https://github.com/zsibot-camera/ZSViewer-delivery) RGB-D 查看 / 点云 / 抓图 / 录像（独立仓库） |
 | Thor 板端 | — | 通用 | depth_sdk 0.1.0（头文件 + 动态库 + engine） |
 
@@ -222,7 +222,7 @@ export LD_LIBRARY_PATH=/path/to/双目og02d10/sdk/lib:$LD_LIBRARY_PATH
 
 ```bash
 git clone https://github.com/zsibot-camera/nvidia-jetson-camera-drivers.git
-cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/四目isx031"
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/单目isx031"
 ./preflight.sh
 ./driver/install.sh --check
 ```
@@ -241,7 +241,7 @@ MAX96712（0x6b / I2C12）。
 ### 3. 加载与验证
 
 ```bash
-cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/四目isx031"
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/单目isx031"
 sudo ./driver/load_modules.sh
 for d in /dev/video0 /dev/video1 /dev/video2 /dev/video3; do
     v4l2-ctl -d "$d" --get-fmt-video
@@ -249,7 +249,7 @@ done
 ```
 
 四路都应为 1920×1536、YUYV，每帧 5,898,240 字节。四路并发采集示例见
-[四目 ISX031 README](Jetson%20AGX%20Thor%20Devkit/GMSL/四目isx031/README.md)。
+[四目 ISX031 README](Jetson%20AGX%20Thor%20Devkit/GMSL/单目isx031/README.md)。
 
 ### 4. 节点映射与同步
 
@@ -269,7 +269,7 @@ sudo ./driver/uninstall.sh
 sudo reboot
 ```
 
-详见 [driver/README.md](Jetson%20AGX%20Thor%20Devkit/GMSL/四目isx031/driver/README.md)。
+详见 [driver/README.md](Jetson%20AGX%20Thor%20Devkit/GMSL/单目isx031/driver/README.md)。
 
 ---
 

@@ -10,6 +10,8 @@ Jetson AGX Thor Devkit 上的四目 ISX031 GMSL2 相机驱动交付包：
 
 彩色流通过标准 V4L2 输出，客户可用 `v4l2-ctl`、GStreamer 或自研程序采集。
 
+> 交付目录按仓库槽位命名为 `单目isx031`；本包实际验证的是四路 ISX031 同时出流。
+
 ## 1. 包内容
 
 | 路径 | 说明 |
@@ -49,7 +51,7 @@ sha256sum -c checksums.txt
 ### 3.1 预检
 
 ```sh
-cd 四目isx031
+cd 单目isx031
 ./preflight.sh
 ./driver/install.sh --check
 ```

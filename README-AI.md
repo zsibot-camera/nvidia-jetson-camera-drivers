@@ -22,7 +22,7 @@
 |---|---|---|
 | 在 Thor 上跑深度 SDK / 写 C++ | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` |
 | 在 Thor 上跑 ROS2 深度节点 | Thor 板端 | 直接 clone 本仓库，按 `双目og02d10/README.md` 装 driver + ROS |
-| 在 Thor 上看四路 ISX031 彩色出流 | Thor 板端 | 直接 clone 本仓库，按 `四目isx031/README.md` 装 driver |
+| 在 Thor 上看四路 ISX031 彩色出流 | Thor 板端 | 直接 clone 本仓库，按 `单目isx031/README.md` 装 driver |
 | 在 Linux 上位机看图像/点云/录像 | Ubuntu 22.04+ x86_64 | `ZSViewer-2.1.1-amd64.deb` 或 AppImage（独立仓库） |
 | 在 Windows 上位机看图像/点云/录像 | Windows 10/11 x64 | `ZSViewer-2.1.1-windows-x64-setup.exe`（独立仓库） |
 | 只想快速验证相机出流 | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` 里的 `demo` |
@@ -173,7 +173,7 @@ overlay 同时启用**，它们共用 MAX96712（0x6b / I2C12）。
 
 ```bash
 git clone https://github.com/zsibot-camera/nvidia-jetson-camera-drivers.git
-cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/四目isx031"
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/单目isx031"
 ./preflight.sh
 ./driver/install.sh --check
 sudo ./driver/install.sh
@@ -182,7 +182,7 @@ sudo ./driver/install.sh
 安装脚本会提示需要重启；**由用户确认后执行 `sudo reboot`**。重启后：
 
 ```bash
-cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/四目isx031"
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/单目isx031"
 sudo ./driver/load_modules.sh
 for d in /dev/video0 /dev/video1 /dev/video2 /dev/video3; do
     v4l2-ctl -d "$d" --get-fmt-video
@@ -286,7 +286,7 @@ ls -l /tmp/cam*.yuv
 - `delivery-manifest.json`：包名、平台、下载地址、SHA256、安装入口。
 - `Jetson AGX Thor Devkit/GMSL/双目og02d10/sdk/AI-INSTALL.md`：SDK 详细安装。
 - `Jetson AGX Thor Devkit/GMSL/双目og02d10/README.md`：驱动 + SDK + ROS2 完整流程。
-- `Jetson AGX Thor Devkit/GMSL/四目isx031/README.md`：四目 ISX031 驱动安装与出流。
-- `Jetson AGX Thor Devkit/GMSL/四目isx031/docs/VERIFICATION.md`：四目上板验证记录。
+- `Jetson AGX Thor Devkit/GMSL/单目isx031/README.md`：四目 ISX031 驱动安装与出流。
+- `Jetson AGX Thor Devkit/GMSL/单目isx031/docs/VERIFICATION.md`：四目上板验证记录。
 - ZSViewer 的机器可读说明与 `install.sh` 在独立仓库
   [ZSViewer-delivery](https://github.com/zsibot-camera/ZSViewer-delivery)。
