@@ -11,8 +11,8 @@
 > - 不要在日志/命令里写入密码、token；
 > - 需要 `sudo reboot` 时先告诉用户，让用户确认。
 
-本仓库面向 **Jetson AGX Thor Devkit + GMSL 双目 OG02D10 / 四目 ISX031**。
-其他平台（Orin、RV1126B）请使用对应仓库/交付包。
+本仓库面向 **Jetson AGX Thor Devkit + GMSL 双目 OG02D10 / 四目 ISX031 /
+四目 OG02B10**。其他平台（Orin、RV1126B）请使用对应仓库/交付包。
 
 ---
 
@@ -23,6 +23,7 @@
 | 在 Thor 上跑深度 SDK / 写 C++ | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` |
 | 在 Thor 上跑 ROS2 深度节点 | Thor 板端 | 直接 clone 本仓库，按 `双目og02d10/README.md` 装 driver + ROS |
 | 在 Thor 上看四路 ISX031 彩色出流 | Thor 板端 | 直接 clone 本仓库，按 `单目isx031/README.md` 装 driver |
+| 在 Thor 上看四路 OG02B10 彩色出流 | Thor 板端 | 直接 clone 本仓库，按 `单目og02b10/README.md` 装 driver |
 | 在 Linux 上位机看图像/点云/录像 | Ubuntu 22.04+ x86_64 | `ZSViewer-2.1.1-amd64.deb` 或 AppImage（独立仓库） |
 | 在 Windows 上位机看图像/点云/录像 | Windows 10/11 x64 | `ZSViewer-2.1.1-windows-x64-setup.exe`（独立仓库） |
 | 只想快速验证相机出流 | Thor 板端 | `depth_sdk-0.1.0-thor-aarch64.tar.gz` 里的 `demo` |
@@ -193,6 +194,33 @@ done
 各 30 帧时，每个文件 176,947,200 字节。同步由 MAX96712 内部 FSYNC 30 Hz
 产生，两两时间戳差应远小于 1 ms。
 
+### 4.6 Thor 四目 OG02B10 驱动（彩色，可选）
+
+只做四路彩色出流，不需要深度 SDK、ROS2 或 TensorRT。**不要与 ISX031/OG02D10
+overlay 同时启用**，它们共用 MAX96712（0x6b / I2C12）。
+
+```bash
+git clone https://github.com/zsibot-camera/nvidia-jetson-camera-drivers.git
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/单目og02b10"
+./preflight.sh
+./driver/install.sh --check
+sudo ./driver/install.sh
+```
+
+安装脚本会提示需要重启；**由用户确认后执行 `sudo reboot`**。重启后：
+
+```bash
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/单目og02b10"
+sudo ./driver/load_modules.sh
+for d in /dev/video0 /dev/video1 /dev/video2 /dev/video3; do
+    v4l2-ctl -d "$d" --get-fmt-video
+done
+```
+
+预期：4 个名称含 `og02b10` 的视频节点，均为 1600×1301、YUYV。四路并发采集
+各 30 帧时，每个文件 124,896,000 字节。同步由 MAX96712 内部 FSYNC 30 Hz
+产生，两两时间戳差应远小于 1 ms。
+
 ## 5. 连接与验证
 
 ### 5.1 ZSViewer 连接 Thor
@@ -249,6 +277,20 @@ ls -l /tmp/cam*.yuv
 
 预期：四个文件均为 176,947,200 字节，四路图像内容不同。
 
+### 5.5 四目 OG02B10 四路出流
+
+```bash
+for i in 0 1 2 3; do
+    v4l2-ctl -d "/dev/video$i" \
+        --set-fmt-video=width=1600,height=1301,pixelformat=YUYV \
+        --stream-mmap --stream-count=30 --stream-to="/tmp/cam$i.yuv" &
+done
+wait
+ls -l /tmp/cam*.yuv
+```
+
+预期：四个文件均为 124,896,000 字节，四路图像内容不同。
+
 ## 6. 排障
 
 | 现象 | 先检查 | 处理 |
@@ -261,7 +303,10 @@ ls -l /tmp/cam*.yuv
 | 单路相机停帧 | 服务日志 | 重启采集服务/整机；**不要**重载 serdes 驱动 |
 | 四目 ISX031 无 `/dev/video0..3` | 主启动项 overlay | 只保留 ISX031 overlay；重启后执行 `driver/load_modules.sh` |
 | 四目 ISX031 只有部分节点 | GMSL 链路/模组供电 | 检查线束和 link lock；**不要**重载 serdes 驱动 |
-| OG02D10 与 ISX031 同时启用 | extlinux `OVERLAYS` | 两者共用 MAX96712 `0x6b` / I2C12，必须二选一 |
+| 四目 OG02B10 无 `/dev/video0..3` | 主启动项 overlay | 只保留 OG02B10 overlay；重启后执行 `driver/load_modules.sh` |
+| 四目 OG02B10 只有部分节点 | GMSL 链路/模组供电 | 检查线束和 link lock；**不要**重载 serdes 驱动 |
+| OG02B10 打印 `max96717_read_reg ... reg=0x0000` | 串行器地址回退 | 正常；随后 `set_address` 重映射到 0x43..0x46 |
+| OG02D10 / ISX031 / OG02B10 同时启用 | extlinux `OVERLAYS` | 三者共用 MAX96712 `0x6b` / I2C12，必须三选一 |
 | TensorRT engine 反序列化失败 | engine 来源 | 必须用 Thor + TensorRT 10.16 的 engine；Orin engine 不可用 |
 | 深度全 0 / 尺度不对 | 标定文件来源 | 换成本模组随货 `stereo_calibration.json`；确认 `baseline_m`≈0.05955 |
 | ZSViewer 黑屏/图像不动 | 板端是否出流 | 先看板端帧计数/ROS 话题；不要为此改板端 VPI 后端 |
@@ -275,6 +320,7 @@ ls -l /tmp/cam*.yuv
 | Thor 交付包 | JetPack 7.0 / L4T R39.2.1 / TensorRT 10.16 / VPI 4.1.4 |
 | depth_sdk | 0.1.0 |
 | 四目 ISX031 驱动 | 首版 2026-11-18（内核 `6.8.12-1021-tegra`） |
+| 四目 OG02B10 驱动 | 首版 2026-11-19（内核 `6.8.12-1021-tegra`） |
 | ZSViewer | 2.1.1 |
 | UVDP | v2（TCP 9600） |
 
@@ -287,6 +333,8 @@ ls -l /tmp/cam*.yuv
 - `Jetson AGX Thor Devkit/GMSL/双目og02d10/sdk/AI-INSTALL.md`：SDK 详细安装。
 - `Jetson AGX Thor Devkit/GMSL/双目og02d10/README.md`：驱动 + SDK + ROS2 完整流程。
 - `Jetson AGX Thor Devkit/GMSL/单目isx031/README.md`：四目 ISX031 驱动安装与出流。
-- `Jetson AGX Thor Devkit/GMSL/单目isx031/docs/VERIFICATION.md`：四目上板验证记录。
+- `Jetson AGX Thor Devkit/GMSL/单目isx031/docs/VERIFICATION.md`：四目 ISX031 上板验证记录。
+- `Jetson AGX Thor Devkit/GMSL/单目og02b10/README.md`：四目 OG02B10 驱动安装与出流。
+- `Jetson AGX Thor Devkit/GMSL/单目og02b10/docs/VERIFICATION.md`：四目 OG02B10 上板验证记录。
 - ZSViewer 的机器可读说明与 `install.sh` 在独立仓库
   [ZSViewer-delivery](https://github.com/zsibot-camera/ZSViewer-delivery)。
