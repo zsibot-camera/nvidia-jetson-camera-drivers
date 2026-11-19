@@ -185,8 +185,8 @@ media-ctl -p
 ### 7.6 板端 `nvcompositor` 崩溃
 
 在 Thor 上 `nvcompositor` 合成四路 1600×1301 会 SIGSEGV（ISX031 验证中同样出现）。
-演示视频使用四路独立 `nvv4l2h264enc` 硬编、主机侧 ffmpeg 合成；不要把
-`nvcompositor` 当作稳定路径。
+不要把 `nvcompositor` 当作稳定路径；建议单路预览，或使用四路独立
+`nvv4l2h264enc` 硬编后在主机侧合成。
 
 ## 8. 兼容性
 
