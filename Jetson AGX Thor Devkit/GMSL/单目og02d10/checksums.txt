@@ -1,0 +1,14 @@
+54cde1c59a382b52e57a1e9804f54ee985019fc689cc93514d34e77556b63fba  ./README.md
+8f9275846a3834c2df382e89324486b06aa093a3ad00189aa5f25beec2bdcd80  ./preflight.sh
+d4a0a84dcc80edd611ab5a6c56bca7f08dc2e4650b1a424e0c64b44458015a06  ./.gitignore
+6ead3859f96854ee60edac46bbbb43941dbc4b8ddc95274ded4e3fc87237d919  ./docs/VERSION.md
+307269a539aeafce5243f8ca3e7da4e6ebc1d7221212ee51aa1a02cca05ff5d7  ./docs/VERIFICATION.md
+e916eafca0bf0feebd110ecfb61b9dafb16872d6052f12cf8f4c547c073d9b36  ./driver/README.md
+5b0c43f98a930b5a73a63cf271db4c59789692b42164f8892087d7190cac7d24  ./driver/install.sh
+a464034dbdf1e997bc1cf7d5bbeceb15c184177123f274b2d4dc892723bd78a8  ./driver/uninstall.sh
+ef07f554b25cecfac3fdad4c40f487d4161b2df0d8296b874f2955f0ba718679  ./driver/load_modules.sh
+c396e15d9549b658ce47161b33f3758998fbe054a1e9af6b37b16d9d887471f9  ./driver/ko/nv_max96712.ko
+b588496b5d16504f1ca4b6f7f35063ca97774baef1527c605d82c0f472aa07f4  ./driver/ko/nv_max96717.ko
+480df533bde33bc97d5376ccdeef3e0decfb0c8351aa5858078d6bf4c4b0d9a4  ./driver/ko/nv_og02d10_single.ko
+a56d8631d15a6448ff11d528ee9450ff65f16e9b7c662e04d71ee858dc701408  ./driver/ko/serdes_core.ko
+1afc6c6271971e1db98c22ad7e3edc156ed29cd18263ad5ad9773ec9c5f03154  ./driver/dtb/tegra264-p4071-camera-og02d10-quad-overlay.dtbo

@@ -15,6 +15,7 @@
 | 驱动 + SDK + ROS2 | [双目 OG02D10 交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) | Thor 板端完整链路 |
 | 四目 ISX031 驱动 | [四目 ISX031 驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/单目isx031/) | Thor 板端四路彩色出流 |
 | 四目 OG02B10 驱动 | [四目 OG02B10 驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/单目og02b10/) | Thor 板端四路彩色出流 |
+| 四目 OG02D10 驱动 | [四目 OG02D10 驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/单目og02d10/) | Thor 板端四路彩色出流 |
 
 每个 Release 附带 `SHA256SUMS`；仓库内驱动目录附带 `checksums.txt`，用法相同。
 下载后先校验：
@@ -30,6 +31,7 @@ sha256sum -c SHA256SUMS --ignore-missing
 | Jetson AGX Thor Devkit | GMSL | 双目 OG02D10 | [深度相机交付包](Jetson%20AGX%20Thor%20Devkit/GMSL/双目og02d10/) |
 | Jetson AGX Thor Devkit | GMSL | 四目 ISX031 | [四路彩色驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/单目isx031/) |
 | Jetson AGX Thor Devkit | GMSL | 四目 OG02B10 | [四路彩色驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/单目og02b10/) |
+| Jetson AGX Thor Devkit | GMSL | 四目 OG02D10（MAX96717F） | [四路彩色驱动包](Jetson%20AGX%20Thor%20Devkit/GMSL/单目og02d10/) |
 | 上位机 Linux / Windows | — | 通用 | [ZSViewer](https://github.com/zsibot-camera/ZSViewer-delivery) RGB-D 查看 / 点云 / 抓图 / 录像（独立仓库） |
 | Thor 板端 | — | 通用 | depth_sdk 0.1.0（头文件 + 动态库 + engine） |
 
@@ -39,7 +41,7 @@ sha256sum -c SHA256SUMS --ignore-missing
 
 以二进制交付为主：内核驱动（`.ko` / `.dtbo`）、安装脚本、预编译 SDK（头文件 + 动态库 +
 TensorRT engine）、ROS2 节点，不包含算法与 C++ 源码。相机驱动按模组/拓扑独立交付；
-四目 ISX031 / OG02B10 为纯驱动包，不含 SDK、ROS2、深度或标定。上位机 ZSViewer 在独立的
+四目 ISX031 / OG02B10 / OG02D10 为纯驱动包，不含 SDK、ROS2、深度或标定。上位机 ZSViewer 在独立的
 [ZSViewer-delivery](https://github.com/zsibot-camera/ZSViewer-delivery) 仓库交付。
 
 ---
@@ -345,6 +347,84 @@ sudo reboot
 
 ---
 
+## 快速开始：Thor GMSL 四目 OG02D10（彩色）
+
+四路 1920×1280 YUYV422，30 fps，同时出流；OG02D10 模组自由运行，不订阅 FSYNC，
+不需要外部触发引脚，四路之间**不保证曝光同步**。本包只提供驱动，不含 SDK、ROS2、
+深度或标定。
+
+> 本包与“双目 OG02D10”是两套独立驱动。它自带新版 `serdes_core`、`nv_max96712`、
+> `nv_max96717`，四个模块必须同批安装；与仓库中其他相机包的旧构建 `.ko` 混用会
+> 报符号 CRC 不一致。切换相机拓扑时先用本包 `driver/uninstall.sh` 回滚并重启。
+
+### 0. 系统要求
+
+| 项 | 版本 |
+|---|---|
+| 平台 | Jetson AGX Thor Devkit（P4071 + P3834-0008） |
+| JetPack | 7.2.1（L4T R39.2.1） |
+| 内核 | 6.8.12-1021-tegra |
+| 拓扑 | 1× MAX96712 + 4× MAX96717F + 4× OG02D10 |
+
+### 1. 获取与预检
+
+```bash
+git clone https://github.com/zsibot-camera/nvidia-jetson-camera-drivers.git
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/单目og02d10"
+./preflight.sh
+./driver/install.sh --check
+```
+
+### 2. 安装
+
+```bash
+sudo ./driver/install.sh
+sudo reboot
+```
+
+安装脚本会备份原文件和启动项，并且只把主启动项 `OVERLAYS` 里的
+ISX031 / 双目 OG02D10 / OG02B10 相机 overlay 替换成本包 overlay。
+**不要同时启用多种相机 overlay**，它们共用 MAX96712（0x6b / I2C12）。
+
+### 3. 加载与验证
+
+```bash
+cd "nvidia-jetson-camera-drivers/Jetson AGX Thor Devkit/GMSL/单目og02d10"
+sudo ./driver/load_modules.sh
+for d in /dev/video0 /dev/video1 /dev/video2 /dev/video3; do
+    v4l2-ctl -d "$d" --get-fmt-video
+done
+```
+
+四路都应为 1920×1280、YUYV，每帧 4,915,200 字节（30 帧 147,456,000 字节）。
+四路并发 300 帧实测 10.101 s，即 29.70 fps/路。四路并发采集示例见
+[四目 OG02D10 README](Jetson%20AGX%20Thor%20Devkit/GMSL/单目og02d10/README.md)。
+
+### 4. 节点映射与出流模式
+
+实测：video0→vc2→C（12-0013），video1→vc1→B（12-0012），
+video2→vc0→A（12-0011），video3→vc3→D（12-0014）。
+`/dev/videoN` 编号由 Linux 分配，换载板后以 `media-ctl -p` 或 dmesg 的
+`vc=N` 为准。
+
+OG02D10 为自由运行模组：dmesg 只有 MAX96712 内部 FSYNC 发生器初始化，
+没有 `deser FSYNC trigger on` / MFP7 触发配置。四路时间戳相互独立，不宣称
+路间同步指标。节点名使用短名 `og02d10sgl`，避免 Tegra VI 的 32 字节
+`v4l2_capability.card` 限制（否则 `v4l2-ctl` 报 `File name too long`）。
+
+### 5. 回滚
+
+```bash
+sudo ./driver/uninstall.sh
+sudo reboot
+```
+
+回滚会一并恢复安装前的 `serdes_core` / `nv_max96712` / `nv_max96717`，
+使旧相机包重新可用。详见
+[driver/README.md](Jetson%20AGX%20Thor%20Devkit/GMSL/单目og02d10/driver/README.md)。
+
+---
+
 ## 常见问题
 
 | 现象 | 处理 |
@@ -363,7 +443,12 @@ sudo reboot
 | 四目 OG02B10 没有 `/dev/video0..3` | 确认主启动项只有 OG02B10 overlay；重启后执行 `driver/load_modules.sh` |
 | 四目 OG02B10 只有部分节点 | 检查四条 GMSL 链路、模组供电和线束；不要重载 serdes 驱动 |
 | OG02B10 的 `max96717_read_reg ... reg=0x0000` | 正常地址回退；随后 `set_address` 重映射到 0x43..0x46 |
-| OG02D10 / ISX031 / OG02B10 能否同时出流 | 不能；三者共用 MAX96712 `0x6b` / I2C12，需按启动项三选一 |
+| 四目 OG02D10 没有 `/dev/video0..3` | 确认主启动项只有 OG02D10 四目 overlay；重启后执行 `driver/load_modules.sh` |
+| 四目 OG02D10 只有部分节点 | 检查四条 GMSL 链路、模组供电和线束；不要重载 serdes 驱动 |
+| OG02D10 报 `disagrees about version of symbol serdes_` | 本包四个模块未同批安装；用 `driver/install.sh` 重装后重启 |
+| OG02D10 节点 `v4l2-ctl` 报 `File name too long` | 装到了长名旧构建；使用本包 `og02d10sgl` 短名驱动 |
+| OG02D10 四路不同步 | 模组自由运行，本包不订阅 FSYNC；需要同步请改用外部触发模组 |
+| 双目/四目 OG02D10、ISX031、OG02B10 能否同时出流 | 不能；共用 MAX96712 `0x6b` / I2C12，需按启动项选一种 |
 
 ## 相关仓库
 
